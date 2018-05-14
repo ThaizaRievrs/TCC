@@ -1,18 +1,22 @@
 using JuMP, Gurobi
 
-#function PrintSolution(status, plants, markets, ship)
-#    println("RESULTS:")
-#    if status == :Optimal
-#      for i = 1:length(plants)
-#        for j in 1:length(markets)
-#          println("  $(plants[i]) $(markets[j]) = $(getvalue(ship[i,j]))")
-#        end
-#      end
-#    else
-#        println("  No solution")
-#    end
-#    println("")
-#end
+function PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x) 
+    println("RESULTADO:")
+    if solucao == :Optimal
+      for i = 1:num_clientes
+        for j = 1:num_clientes #in?
+          for k = 1:num_veiculos
+            for t = 1:num_periodos
+          println("  $(q[i,k,t]) : $(getvalue(x[i,j,k,t]))")
+            end
+          end
+        end
+      end
+    else
+        println(" Sem soluçao")
+    end
+    println("")
+end
 
 # i, j  {1:num_clientes}
 # t ...
@@ -75,7 +79,14 @@ function solveIRP(H,            # Custo de manutencao de estoque
                                               + sum(x[i,j,k,t] for j=0:i-1) = 2*y[i,k,t])   
   end
 
-  status = solve(IRP)
-  println("status = $status")
-  x = getvalue(x) # Pega o valor de x
+  solucao = solve(IRP)
+  #println("solucao = $solucao")
+  #x = getvalue(x) # Pega o valor de x
+  if solution == :Optimal
+    result = x
+    PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x)
+  else
+    result = solucao
+    print("Sem solução")
+  end
 end
