@@ -35,13 +35,13 @@ function solveIRP(H,            # Custo de manutencao de estoque
   IRP = Model(solver=GurobiSolver())
   
   # q quantidade de produto entregue pelo fornecedor para o cliente i com o veiculo k no periodo t
-  @variable(IRP, q[i=1:num_clientes,k=1:num_veiculos,t=1:num_periodos] => 0, Int)
+  @variable(IRP, q[i=1:num_clientes,k=1:num_veiculos,t=1:num_periodos] >= 0, Int)
   # r quantidade de produtos disponibilizada pelo fornecedor no periodo t
   @variable(IRP, r[t=1:num_periodos], Int)
   # nivel de estoque no periodo (clientes)
-  @variable(IRP, I[i=1:num_clientes,t=1:num_periodos] => 0, Int)
+  @variable(IRP, I[i=1:num_clientes,t=1:num_periodos] >= 0, Int)
   # nivel de estoque no periodo (fornecedor)
-  @variable(IRP, I[0,t=1:num_periodos] => 0, Int) 
+  @variable(IRP, I[0,t=1:num_periodos] >= 0, Int) 
   # variavel só é usada na restrição 11 segundo somatório
   @variable(IRP, 0 <= x0[i=1:num_clientes,k=1:num_veiculos,t=1:num_periodos] <= 2, Int) # {0,1,2}
   # numero de vezes que o caminho (i,j) é usado pelo veiculo k no periodo  
@@ -96,4 +96,5 @@ function solveIRP(H,            # Custo de manutencao de estoque
     result = solucao
     print("Sem solução")
   end
+  result
 end
