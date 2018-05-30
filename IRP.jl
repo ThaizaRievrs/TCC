@@ -1,4 +1,4 @@
-using JuMP
+﻿using JuMP
 using Gurobi
 
 function PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x, q, y, I, r)
@@ -6,14 +6,18 @@ function PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x, q, y
     if solucao == :Optimal
       for i = 0:num_clientes, j = 0:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
         if x[i,j,k,t] != 0
-         println(" x[$i,$j,$k,$t] = $(x[i,j,k,t])")
+          println(" x[$i,$j,$k,$t] = $(x[i,j,k,t])")
         end
       end
       for i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
-        println(" q[$i,$k,$t] = $(q[i,k,t])")
+        if q[i,k,t] != 0
+          println(" q[$i,$k,$t] = $(q[i,k,t])")
+        end
       end
       for i = 0:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
-        println(" y[$i,$k,$t] = $(y[i,k,t])")
+        if y[i,k,t] != 0
+          println(" y[$i,$k,$t] = $(y[i,k,t])")
+        end
       end
       for i = 0:num_clientes, t = 0:num_periodos
         println(" I[$i,$t] = $(I[i,t])")
@@ -29,7 +33,7 @@ end #end função
 
 function solveIRP(H,            # Custo de manutencao de estoque
                   I0,           # nível de estoque inicial
-                  r,            # quantidade e produto fornecido pelo fornecedor
+                  r,            # quantidade de produto disponibilizada pelo fornecedor
                   Cap_estoque,  # Capacidade de estoque só de clientes
                   Demanda,      # Demanda[i,t] matriz por periodo
                   custo,        # matriz de custo de viagem simétrica
@@ -44,7 +48,7 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
   # q quantidade de produto entregue pelo fornecedor para o cliente i com o veiculo k no periodo t
   @variable(IRP, q[i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos] >= 0, Int)
-  # nivel de estoque no periodo (clientes)
+  # nivel de estoque no periodo (clientes e fornecedor)
   @variable(IRP, I[i = 0:num_clientes, t = 0:num_periodos] >= 0, Int)
   # numero de vezes que o caminho (i,j) é usado pelo veiculo k no periodo
   @variable(IRP, x[i = 0:num_clientes, j = 0:num_clientes, k = 1:num_veiculos, t = 1:num_periodos] >= 0, Int)
@@ -72,10 +76,10 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
     # restrição 2:
     @constraint(IRP, [t = 1:num_periodos], I[0,t] == I[0,t-1] + r[t] - sum(q[i,k,t] for k=1:num_veiculos,
-                                                                                   i=1:num_clientes))
+                                                                                    i=1:num_clientes))
     # restrição 4:
     @constraint(IRP, [i=1:num_clientes, t = 1:num_periodos], I[i,t] == I[i,t-1] - Demanda[i,t]
-                                                           + sum(q[i,k,t] for k=1:num_veiculos))
+                                                                    + sum(q[i,k,t] for k=1:num_veiculos))
     # restrição 6:
     @constraint(IRP, [i=1:num_clientes, t = 1:num_periodos], I[i,t] <= Cap_estoque[i])
     # restrição 7:
