@@ -5,7 +5,9 @@ function PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x, q, y
     println("RESULTADO:")
     if solucao == :Optimal
       for i = 0:num_clientes, j = 0:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
-        println(" x[$i,$j,$k,$t] = $(x[i,j,k,t])")
+        if x[i,j,k,t] != 0
+         println(" x[$i,$j,$k,$t] = $(x[i,j,k,t])")
+        end
       end
       for i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
         println(" q[$i,$k,$t] = $(q[i,k,t])")
@@ -25,11 +27,9 @@ function PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x, q, y
     println(" ")
 end #end função
 
-# i, j  {1:num_clientes}
-# t {1:num_periodos}
 function solveIRP(H,            # Custo de manutencao de estoque
                   I0,           # nível de estoque inicial
-                  r,
+                  r,            # quantidade e produto fornecido pelo fornecedor
                   Cap_estoque,  # Capacidade de estoque só de clientes
                   Demanda,      # Demanda[i,t] matriz por periodo
                   custo,        # matriz de custo de viagem simétrica
@@ -44,14 +44,8 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
   # q quantidade de produto entregue pelo fornecedor para o cliente i com o veiculo k no periodo t
   @variable(IRP, q[i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos] >= 0, Int)
-  # r quantidade de produtos disponibilizada pelo fornecedor no periodo t
-#  @variable(IRP, r[t = 1:num_periodos], Int)
   # nivel de estoque no periodo (clientes)
   @variable(IRP, I[i = 0:num_clientes, t = 0:num_periodos] >= 0, Int)
-  # nivel de estoque no periodo (fornecedor)
-#  @variable(IRP, I[0, t = 1:num_periodos] >= 0, Int)
-  # variavel só é usada na restrição 11 segundo somatório
-#  @variable(IRP, 0 <= x0[i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos] <= 2, Int) # {0,1,2}
   # numero de vezes que o caminho (i,j) é usado pelo veiculo k no periodo
   @variable(IRP, x[i = 0:num_clientes, j = 0:num_clientes, k = 1:num_veiculos, t = 1:num_periodos] >= 0, Int)
   # se cliente i é visitado pelo veiculo k no periodo = 1
@@ -76,9 +70,6 @@ function solveIRP(H,            # Custo de manutencao de estoque
     end
   end
 
-
-
-
     # restrição 2:
     @constraint(IRP, [t = 1:num_periodos], I[0,t] == I[0,t-1] + r[t] - sum(q[i,k,t] for k=1:num_veiculos,
                                                                                    i=1:num_clientes))
@@ -101,8 +92,6 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
 
   solucao = solve(IRP)
-  #println("solucao = $solucao")
-  #x = getvalue(x) # Pega o valor de x
   if solucao == :Optimal
     x = getvalue(x) # Pega o valor de x
     q = getvalue(q) # Pega o valor de q
