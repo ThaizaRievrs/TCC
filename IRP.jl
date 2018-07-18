@@ -109,19 +109,27 @@ function solveIRP(H,            # Custo de manutencao de estoque
       # Encontrando os componentes conexos do grafo
       cc = connected_components(g)
       if length(cc) > 1
-        # Caso só haja uma componente conexa não há subciclo e não se adiciona nenhuma restrição
-        minTour = sort(cc, by=length)[1]
-        push!(Tours, minTour)
-        #println("minTour=$minTour, t=$t, k=$k")
+        for c in cc
+          if length(c) > 1
+            ord = sort(c)
+            if ord[1] != 1
+              push!(Tours, c)
+              println("Tours1=$Tours, t=$t , k=$k")
+            end
+          end
+        end
       end
     end
 
     for Tour in Tours
+      println("Tours2=$Tours")
       subtourLhs = AffExpr()
       subtourRhs = AffExpr()
       # Encontrando arestas do subciclo
-      for m in Tour
-        for t = 1:num_periodos, k = 1:num_veiculos
+      for t = 1:num_periodos
+        for k = 1:num_veiculos
+          subtourRhs = 0
+          subtourLhs = 0
           for i in Tour
             for j in Tour
               if i < j && getvalue(x[i-1, j-1, k, t]) > 0.01
@@ -131,8 +139,15 @@ function solveIRP(H,            # Custo de manutencao de estoque
             getvalue(y[i-1, k, t])
             subtourRhs += y[i-1, k, t]
           end
-          # restrição 12:
-          @lazyconstraint(cb, subtourLhs <= subtourRhs - y[m-1, k, t])
+          println("subtourLhs = $subtourLhs")
+          println("subtourRhs = $subtourRhs")
+          for m in Tour
+            println("m=$m")
+            println("ym-1=y[$(m-1),$k,$t] = $(y[m-1,k,t])")
+            # restrição 12:
+            @lazyconstraint(cb, subtourLhs <= subtourRhs - y[m-1, k, t])
+            println(" ")
+          end
         end
       end
     end
