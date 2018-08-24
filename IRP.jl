@@ -114,7 +114,6 @@ function solveIRP(H,            # Custo de manutencao de estoque
             ord = sort(c)
             if ord[1] != 1
               push!(Tours, c)
-              println("Tours1=$Tours, t=$t , k=$k")
             end
           end
         end
@@ -122,7 +121,6 @@ function solveIRP(H,            # Custo de manutencao de estoque
     end
 
     for Tour in Tours
-      println("Tours2=$Tours")
       subtourLhs = AffExpr()
       subtourRhs = AffExpr()
       # Encontrando arestas do subciclo
@@ -139,14 +137,9 @@ function solveIRP(H,            # Custo de manutencao de estoque
             getvalue(y[i-1, k, t])
             subtourRhs += y[i-1, k, t]
           end
-          println("subtourLhs = $subtourLhs")
-          println("subtourRhs = $subtourRhs")
           for m in Tour
-            println("m=$m")
-            println("ym-1=y[$(m-1),$k,$t] = $(y[m-1,k,t])")
             # restrição 12:
             @lazyconstraint(cb, subtourLhs <= subtourRhs - y[m-1, k, t])
-            println(" ")
           end
         end
       end
