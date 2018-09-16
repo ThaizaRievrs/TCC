@@ -1,8 +1,11 @@
 include("IRP.jl")
+#highcost H3 rodei até abs3n20.dat
+#highcost H6 rodei até abs2n15.dat
+#lowcost H3 rodei até abs4n20.dat
 
-#function teste("instancia", num_veiculos)
+function roda_instancia(instancia, num_veiculos=2)
 
-    lines = readlines("abs5n20.dat")
+    lines = readlines(instancia)
 
     # dados
     n = parse(split(lines[1])[1]) # fornecdedor + clientes
@@ -49,9 +52,14 @@ include("IRP.jl")
         end
     end
     solveIRP(H,I0,r, Cap_estoque,Demanda,custo,num_veiculos,Cap_veiculos,num_periodos)
-#end
-#solveIRP(H,I0,r, Cap_estoque,Demanda,custo,num_veiculos,Cap_veiculos,num_periodos)
-#highcost H3 rodei até abs3n20.dat
-#highcost H6 rodei até abs2n15.dat
-#lowcost H3 rodei até abs4n20.dat
+end #end função
 
+# Fazer um for que rode em todas as pastas em todos os arquivos de teste
+
+for dir in ["low3", "low6", "high3", "high6"]
+    files = readdir(dir)
+    for file in files
+        roda_instancia("$dir/$file")
+        break
+    end
+end
