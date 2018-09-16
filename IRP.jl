@@ -2,37 +2,6 @@ using JuMP
 using Gurobi
 using Graphs
 
-
-function PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x, q, y, I, r)
-  println("RESULTADO:")
-  if solucao == :Optimal
-    for i = 0:num_clientes, j = i+1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
-      if x[i,j,k,t] != 0
-        println(" x[$i,$j,$k,$t] = $(x[i,j,k,t])")
-      end
-    end
-    for i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
-      if q[i,k,t] != 0
-        println(" q[$i,$k,$t] = $(q[i,k,t])")
-      end
-    end
-    for i = 0:num_clientes, k = 1:num_veiculos, t = 1:num_periodos
-      if y[i,k,t] != 0
-        println(" y[$i,$k,$t] = $(y[i,k,t])")
-      end
-    end
-    for i = 0:num_clientes, t = 0:num_periodos
-      println(" I[$i,$t] = $(I[i,t])")
-    end
-    for t = 1:num_periodos
-      println(" r[$t] = $(r[t])")
-    end
-  else
-    println(" Sem soluçao")
-  end
-  println(" ")
-end #end função
-
 function solveIRP(H,            # Custo de manutencao de estoque
                   I0,           # nível de estoque inicial
                   r,            # quantidade de produto disponibilizada pelo fornecedor
@@ -46,7 +15,7 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
   num_clientes = length(H) - 1
 
-  IRP = Model(solver=GurobiSolver())
+  IRP = Model(solver=GurobiSolver(TimeLimit = 30))
 
   # q quantidade de produto entregue pelo fornecedor para o cliente i com o veiculo k no periodo t
   @variable(IRP, q[i = 1:num_clientes, k = 1:num_veiculos, t = 1:num_periodos] >= 0, Int)
@@ -148,15 +117,5 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
   addlazycallback(IRP, lazyConstraintsCallback)
   solucao = solve(IRP)
-
-  if solucao == :Optimal
-    x = getvalue(x) # Pega o valor de x
-    q = getvalue(q) # Pega o valor de q
-    y = getvalue(y) # Pega o valor de y
-    I = getvalue(I) # Pega o valor de I
-    PrintSolucao(solucao, num_clientes, num_veiculos, num_periodos, x, q, y, I, r)
-  else
-    print("Sem solução")
-  end
 
 end #end função
