@@ -44,27 +44,25 @@ function roda_instancia2(instancia, num_veiculos=1)
         H[c-1] = parse(split(lines[c])[8])
     end
     for i = 1:n
-        for j = i+1:n
+        for j = 1:n
             custo[i,j] = round(Int, sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2))
-            b[i,j] = 0.01*custo[i,j]
+            b[i,j] = 1*custo[i,j]
         end
     end
-    R = 5
+    R = 1:n-1
     return solveIRPT(H, I0, r, Cap_estoque, Demanda, custo, num_veiculos, Cap_veiculos, num_periodos, b, R)
 end #end função
 
+roda_instancia2("high3/abs1n5.dat")
 # For que roda todos os arquivos de teste:
-tabela = zeros(10,3)
 
-for dir in ["low3", "low6", "high3", "high6"]
+#=for dir in ["high3"]#["low3", "low6", "high3", "high6"]
     files = readdir(dir)
-    for (i,file) in enumerate(files)
-        b, f, time = roda_instancia2("$dir/$file")
-        gap = abs(b-f)/abs(f)
-        tabela[i,1] = f
-        tabela[i,2] = gap
-        tabela[i,3] = time
-        println(tabela)
-        break
+    open("$dir-ResultadosIRPTbc.csv", "w") do output
+        for (i,file) in enumerate(files)
+            b, f, time = roda_instancia2("$dir/$file")
+            gap = abs(b-f)/abs(f)
+            println(output, "$file,$f,$b,$gap,$time")
+        end
     end
-end
+end=#
