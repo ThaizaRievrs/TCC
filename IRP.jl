@@ -117,5 +117,8 @@ function solveIRP(H,            # Custo de manutencao de estoque
 
   addlazycallback(IRP, lazyConstraintsCallback)
   solucao = solve(IRP)
-
+  b = getobjectivebound(IRP)
+  f = getobjectivevalue(IRP)
+  time = getsolvetime(IRP)
+  return b, f, time
 end #end função
