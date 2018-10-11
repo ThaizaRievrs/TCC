@@ -15,7 +15,7 @@ function solveIRPT(H,            # Custo de manutencao de estoque
 
   num_clientes = length(H) - 1
 
-  IRPT = Model(solver = GurobiSolver(TimeLimit = 30))
+  IRPT = Model(solver = GurobiSolver())#(TimeLimit = 15))
 
   # q quantidade de produto entregue pelo fornecedor para o cliente i no periodo t
   @variable(IRPT, q[i = 1:num_clientes, t = 1:num_periodos] >= 0, Int)
@@ -24,16 +24,17 @@ function solveIRPT(H,            # Custo de manutencao de estoque
   # numero de vezes que o caminho (i,j) é usado no periodo t
   @variable(IRPT, x[i = 0:num_clientes, j = 0:num_clientes, t = 1:num_periodos], Bin)
   # w quantidade de produto entregue de um cliente i para um cliente j (terceirizado)
-  @variable(IRPT, w[j = 0:num_clientes, i = 1:num_clientes, t = 1:num_periodos] >= 0, Int)
+  @variable(IRPT, w[j = 0:num_clientes, i = 1:num_clientes, t = 1:num_periodos] >= 0, Int)# criar restrição para zerar os outros
   # variavel v
-  @variable(IRPT, v[i = 1:num_clientes, t = 1:num_periodos] >= 0, Int)
+  @variable(IRPT, 0 <= v[i = 1:num_clientes, t = 1:num_periodos] <= Cap_veiculos, Int)
 
   @objective(IRPT, Min, sum(custo[i + 1, j + 1] * x[i, j, t] for i = 0:num_clientes,
                                                               j = 0:num_clientes,
                                                               t = 1:num_periodos)
-                       + sum(H[i + 1] * I[i, t] for i = 0:num_clientes,
-                                                   t = 0:num_periodos)
-                       + sum(b[i, j]*w[i, j, t] for i = 1:R,
+                       + sum(H[1] * I[0, t] for t = 1:num_periodos)
+                       + sum(H[i + 1] * I[i, t] for i = 1:num_clientes,
+                                                   t = 1:num_periodos)
+                       + sum(b[i+1, j+1]*w[i, j, t] for i = [0;R],
                                                  j = 1:num_clientes,
                                                  t = 1:num_periodos))
 
@@ -45,7 +46,7 @@ function solveIRPT(H,            # Custo de manutencao de estoque
   # restrição 2:
   @constraint(IRPT, [t = 1:num_periodos], I[0, t] == I[0, t-1] + r[t] - sum(q[i, t] for i = 1:num_clientes) - sum(w[0, i, t] for i = 1:num_clientes))
   # restrição 4:
-  @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], I[i, t] == I[i, t-1] + w[0, i, t] + sum(w[j, i, t] for j = 1:R)- sum(w[i, j, t] for j = 1:num_clientes) - Demanda[i, t] + q[i, t])
+  @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], I[i, t] == I[i, t-1] + w[0, i, t] + sum(w[j, i, t] for j = R)- sum(w[i, j, t] for j = 1:num_clientes) - Demanda[i, t] + q[i, t])
   # restrição 6:
   @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], I[i, t] <= Cap_estoque[i])
   # restrição 8:
@@ -63,7 +64,7 @@ function solveIRPT(H,            # Custo de manutencao de estoque
   # restrição 13:
   @constraint(IRPT, [i = 1:num_clientes, j = 1:num_clientes, t = 1:num_periodos], v[i, t] - v[j, t] + Cap_veiculos*x[i, j, t] <= Cap_veiculos - q[j, t])
   # restrição 14:
-  @constraint(IRPT, [i = 1:num_clientes, t = 1: num_periodos], q[i, t] <= v[i, t] <= Cap_veiculos)
+  @constraint(IRPT, [i = 1:num_clientes, t = 1: num_periodos], q[i, t] <= v[i, t])
 
   solucao = solve(IRPT)
   b = getobjectivebound(IRPT)
