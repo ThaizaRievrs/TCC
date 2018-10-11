@@ -51,23 +51,19 @@ function roda_instancia(instancia, num_veiculos=2)
             custo[i,j] = round(Int, sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2))
         end
     end
-    solveIRP(H,I0,r, Cap_estoque,Demanda,custo,num_veiculos,Cap_veiculos,num_periodos)
+    return solveIRP(H,I0,r, Cap_estoque,Demanda,custo,num_veiculos,Cap_veiculos,num_periodos)
 end #end função
 
 # For que roda todos os arquivos de teste:
-tabela = zeros(10,3)
 
-for dir in ["low3", "low6", "high3", "high6"]
+for dir in ["low3"]#["low3", "low6", "high3", "high6"]
     files = readdir(dir)
-    for file in files
-        roda_instancia("$dir/$file")
-        b = getobjectivebound(model)
-        f = getobjectivevalue(model)
-        gap = abs(b-f)/abs(f)
-        time = getsolvetime(model)
-        tabela[file,1] = f
-        tabela[file,2] = gap
-        tabela[file,3] = time
-        break
+    open("$dir-ResultadosIRPtr.csv", "w") do output
+        for (i,file) in enumerate(files)
+            b, f, time = roda_instancia("$dir/$file")
+            gap = abs(b-f)/abs(f)
+            println(output, "$file,$f,$gap,$time")
+            break
+        end
     end
 end
