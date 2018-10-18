@@ -12,7 +12,7 @@ function roda_instancia(instancia, num_veiculos=2)
     num_veiculos = 2   #2 e 3
     num_periodos = parse(split(lines[1])[2])
     Cap_veiculos = zeros(num_veiculos)
-    for v = 2:num_veiculos
+    for v = 1:num_veiculos
         Cap_veiculos[v] = parse(split(lines[1])[3])
     end
 
