@@ -52,7 +52,7 @@ function solveIRPT(H,            # Custo de manutencao de estoque
   # restrição 8:
   @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], q[i, t] <= Cap_estoque[i] - I[i, t-1])
   # restrição 7:
-  @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], q[i, t] >= Cap_estoque[i]*sum(x[i, j, t] for j = 1:num_clientes) - I[i, t-1])
+  @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], q[i, t] >= Cap_estoque[i]*sum(x[i, j, t] for j = 0:num_clientes) - I[i, t-1])
   # restrição 9:
   @constraint(IRPT, [i = 1:num_clientes, t = 1:num_periodos], q[i, t] <= Cap_estoque[i]*sum(x[i, j, t] for j = 0:num_clientes))
   # restrição 10:
